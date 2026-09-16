@@ -18,4 +18,8 @@ use-boolean-and = true   # multiple search terms combined with AND opposed to OR
 
 [preprocessor.furigana]
 command = "python scripts/preprocess-furigana.py"
-renderers = ["html"]
+renderers = ["html", "epub"]
+
+[output.epub]
+epub-version = 3
+no-section-label = true
