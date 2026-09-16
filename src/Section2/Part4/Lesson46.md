@@ -16,7 +16,7 @@ It's not only me.
 
 <pre>
 味付けは塩コショウ<b>のみ</b>。
-There is only salt & pepper as flavoring
+There is only salt &amp; pepper as flavoring
 </pre>
 
 ばかり is yet another "only" word. It can also be pronounced ばっか or ばっかり. Xばかり focuses on everything falling within the definition of X as being true, whereas だけ and のみ focus on things that fall outside of the statement being false. Think of the difference in vibes between "There is only this" and "There is nothing else".
