@@ -9,3 +9,40 @@ pre {
   overflow-wrap: anywhere;
   font-family: "Open Sans", sans-serif;
 }
+
+.language-switcher {
+  position: relative;
+  display: inline-block;
+}
+
+.language-popup {
+  position: absolute;
+  right: 0;
+  top: var(--menu-bar-height);
+  z-index: 1000;
+  margin: 0;
+  padding: 0.25em 0;
+  list-style: none;
+  font-size: 0.7em;
+  line-height: normal;
+  white-space: nowrap;
+  background: var(--theme-popup-bg);
+  border: 1px solid var(--theme-popup-border);
+  border-radius: 4px;
+}
+
+.language-popup a {
+  display: block;
+  padding: 0.4em 1.2em;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.language-popup a:hover,
+.language-popup a:focus {
+  background: var(--theme-hover);
+}
+
+.language-popup a.active {
+  font-weight: bold;
+}

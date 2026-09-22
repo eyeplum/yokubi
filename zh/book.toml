@@ -1,8 +1,13 @@
+# Chinese (Simplified) edition. Built into `book/html/zh/` by scripts/build.sh,
+# so it must be built after the root book (which clears `book/html/`).
 [book]
 authors = ["Morg"]
-language = "ja"
+language = "zh-CN"
 src = "src"
-title = "Yokubi"
+title = "Yokubi 中文版"
+
+[build]
+build-dir = "../book/html/zh"
 
 [output.html]
 default-theme = "Navy"
@@ -18,9 +23,4 @@ use-boolean-and = true   # multiple search terms combined with AND opposed to OR
 
 [preprocessor.furigana]
 command = "python scripts/preprocess-furigana.py"
-renderers = ["html", "epub"]
-
-[output.epub]
-optional = true
-epub-version = 3
-no-section-label = true
+renderers = ["html"]
