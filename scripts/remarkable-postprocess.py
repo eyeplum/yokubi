@@ -9,7 +9,8 @@ every run of kana/kanji in the English source is a known Japanese string, and
 occurrences of those are wrapped in <span lang="ja">. YouTube embeds can't play
 on paper, so they become links. Each chapter gets its SUMMARY.md title (with the
 lesson number) as a running header, and its English SUMMARY.md title as its entry
-in the PDF's table of contents, since the reMarkable draws Chinese there as tofu.
+in the PDF's table of contents, with the Japanese in romaji, since the reMarkable
+draws CJK there as tofu.
 """
 import pathlib
 import re
@@ -21,6 +22,7 @@ KANA = "぀-ゟ゠-ヿー"
 KANJI = "㐀-䶿一-鿿豈-﫿々〆"
 JAPANESE_RUN = re.compile(f"[{KANA}{KANJI}〜]+")
 HAS_KANA = re.compile(f"[{KANA}]")
+HAS_KANJI = re.compile(f"[{KANJI}]")
 CJK = re.compile(f"[{KANA}{KANJI}]")
 STANDALONE_KANJI = re.compile(f"(?<![{KANA}{KANJI}])[{KANJI}]+(?![{KANA}{KANJI}])")
 # Ranges separated only by these are merged into one span.
@@ -32,6 +34,21 @@ YOUTUBE = re.compile(r'<iframe[^>]*src="https://www\.youtube\.com/embed/([\w-]+)
 CHAPTER_BREAK = '<div style="break-before: page; page-break-before: always;"></div>'
 SUMMARY_ENTRY = re.compile(r"^( *)(?:- )?\[([^\]]+)\]\([^)]+\)", re.M)
 HEADING = re.compile(r"<(h[1-6])\b")
+
+KANA_ROMAJI = dict(zip(
+    "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん"
+    "がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽぁぃぅぇぉ",
+    "a i u e o ka ki ku ke ko sa shi su se so ta chi tsu te to na ni nu ne no ha hi fu he ho "
+    "ma mi mu me mo ya yu yo ra ri ru re ro wa o n ga gi gu ge go za ji zu ze zo da ji zu de do "
+    "ba bi bu be bo pa pi pu pe po a i u e o".split(),
+))
+SMALL_Y = {"ゃ": "a", "ゅ": "u", "ょ": "o"}
+PARTICLES = {"は": "wa", "へ": "e", "を": "o"}
+# Kanji can't be romanised mechanically, so chapter titles' kanji need a reading here.
+TITLE_READINGS = {
+    "と思う": "to omou", "と考える": "to kangaeru", "の方が": "no hou ga", "自分": "jibun",
+    "事": "koto", "物": "mono", "後": "ato", "前": "mae", "先": "saki", "時": "toki",
+}
 
 
 def japanese_strings(src):
@@ -123,6 +140,42 @@ def tag_japanese(html, strings):
     return "".join(tokens).replace("<ruby>", '<ruby lang="ja">')
 
 
+def kana_romaji(kana):
+    kana = "".join(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c for c in kana)
+    out, double = [], False
+    for c in kana:
+        if c == "っ":
+            double = True
+            continue
+        if c in SMALL_Y and out and len(out[-1]) > 1:
+            stem = out[-1][:-1]
+            out[-1] = stem + ("" if stem in ("sh", "ch", "j") else "y") + SMALL_Y[c]
+            continue
+        r = out[-1][-1] if c == "ー" and out else KANA_ROMAJI.get(c, c)
+        if double:
+            r = ("t" if r.startswith("ch") else r[0]) + r
+            double = False
+        out.append(r)
+    return "".join(out)
+
+
+def romaji(title):
+    """The title with its Japanese in romaji."""
+    def replace(m):
+        run = m.group().replace("〜", "~")
+        if run in TITLE_READINGS:
+            return TITLE_READINGS[run]
+        if HAS_KANJI.search(run):
+            print(f"No romaji for {run!r} in {title!r}; add it to TITLE_READINGS", file=sys.stderr)
+            return run
+        # A lone or trailing は/へ/を in a title is a particle (では, ては).
+        if run[-1] in PARTICLES:
+            head = kana_romaji(run[:-1])
+            return f"{head} {PARTICLES[run[-1]]}" if head else PARTICLES[run[-1]]
+        return kana_romaji(run)
+    return JAPANESE_RUN.sub(replace, title)
+
+
 def summary(src):
     """(nesting level, title) of each chapter in SUMMARY.md.
 
@@ -144,7 +197,7 @@ def chapter_pages(html, src):
     for i, (chapter, (_, title), (level, toc_title)) in enumerate(zip(chapters, titles, english)):
         # Chrome builds the PDF's outline from the headings it paints and doesn't
         # take role="none" ones, so this invisible heading is the chapter's entry.
-        chapter = f'<h{level} class="toc-entry">{escape(toc_title)}</h{level}>{chapter}'
+        chapter = f'<h{level} class="toc-entry">{escape(romaji(toc_title))}</h{level}>{chapter}'
         # The front page goes without a header.
         if not i:
             chapters[i] = chapter
