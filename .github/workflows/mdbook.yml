@@ -25,9 +25,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # reMarkable PDFs, linked from the front page. Runs on macOS because
+  # scripts/export-remarkable.sh relies on the Hiragino and PingFang system fonts
+  # (and Google Chrome, which the macOS runners come with).
+  pdf:
+    runs-on: macos-latest
+    env:
+      MDBOOK_VERSION: 0.4.36
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mdBook
+        run: cargo install --locked --version ${MDBOOK_VERSION} mdbook
+      - name: Export PDFs
+        run: ./scripts/export-remarkable.sh
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: yokubi-remarkable
+          path: book/remarkable/*.pdf
+          if-no-files-found: error
+
   # Build job
   build:
     runs-on: ubuntu-latest
+    needs: pdf
     env:
       MDBOOK_VERSION: 0.4.36
     steps:
@@ -42,6 +63,11 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Build with mdBook
         run: ./scripts/build.sh
+      - name: Add PDFs
+        uses: actions/download-artifact@v4
+        with:
+          name: yokubi-remarkable
+          path: ./book/html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

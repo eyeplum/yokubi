@@ -20,4 +20,8 @@ Yokubi 是一个**开放**的、**由社区维护**的项目。我们欢迎各�
 
 如果你想参与贡献，可以在 [GitHub](https://github.com/Morgawr/yokubi) 上查看本项目，并提交 issue 和 pull request。
 
+<p class="pdf-downloads">
+想用电子阅读器阅读？可以下载为 reMarkable 2 排版的 PDF：<a href="../yokubi-zh.pdf">中文</a> · <a href="../yokubi-en.pdf">English</a>
+</p>
+
 **千万不要**跳过[开始之前](./Before-you-begin.md)和[前言](./Preamble.md)这两页。它们会告诉你如何使用本指南。
