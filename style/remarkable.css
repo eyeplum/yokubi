@@ -8,13 +8,13 @@
   /* The chapter title; each chapter's content is set by scripts/remarkable-postprocess.py. */
   @top-center {
     font-family: "Open Sans", sans-serif;
-    font-size: 9pt;
+    font-size: 7pt;
     color: #666;
   }
 }
 
 body {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
 }
 
 body, pre {
