@@ -14,7 +14,7 @@
 }
 
 body {
-  font-size: 1.7rem;
+  font-size: 1.4rem;
 }
 
 body, pre {
@@ -33,6 +33,14 @@ table, .warning, li {
 /* Empty, but after the last chapter's named page it would start a blank one. */
 .nav-wrapper, .nav-wide-wrapper {
   display: none;
+}
+
+/* Painted (so Chrome puts them in the PDF's table of contents) but invisible. */
+.toc-entry {
+  position: absolute;
+  margin: 0;
+  font-size: 1px;
+  color: transparent;
 }
 
 /* The front page's links to these PDFs. */

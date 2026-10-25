@@ -8,11 +8,13 @@ in Before-you-begin). The English edition carries the same Japanese verbatim, so
 every run of kana/kanji in the English source is a known Japanese string, and
 occurrences of those are wrapped in <span lang="ja">. YouTube embeds can't play
 on paper, so they become links. Each chapter gets its SUMMARY.md title (with the
-lesson number) as a running header.
+lesson number) as a running header, and its English SUMMARY.md title as its entry
+in the PDF's table of contents, since the reMarkable draws Chinese there as tofu.
 """
 import pathlib
 import re
 import sys
+from html import escape
 
 FURIGANA = re.compile(r"\{f\|([^{}|\n]+)\|([^{}|\n]+)\}")
 KANA = "぀-ゟ゠-ヿー"
@@ -28,7 +30,8 @@ TAG = re.compile(r"(<[^>]+>)")
 INLINE_TAGS = {"a", "b", "code", "em", "i", "ruby", "span", "strong"}
 YOUTUBE = re.compile(r'<iframe[^>]*src="https://www\.youtube\.com/embed/([\w-]+)[^"]*"[^>]*></iframe>')
 CHAPTER_BREAK = '<div style="break-before: page; page-break-before: always;"></div>'
-SUMMARY_LINK = re.compile(r"\[([^\]]+)\]\([^)]+\)")
+SUMMARY_ENTRY = re.compile(r"^( *)(?:- )?\[([^\]]+)\]\([^)]+\)", re.M)
+HEADING = re.compile(r"<(h[1-6])\b")
 
 
 def japanese_strings(src):
@@ -120,18 +123,31 @@ def tag_japanese(html, strings):
     return "".join(tokens).replace("<ruby>", '<ruby lang="ja">')
 
 
-def running_headers(html, src):
-    """Puts each chapter on a named page whose top margin shows its SUMMARY.md title."""
-    # print.html lays the chapters out in SUMMARY.md order (draft chapters have no link).
-    titles = SUMMARY_LINK.findall((src / "SUMMARY.md").read_text())
-    chapters = html.split(CHAPTER_BREAK)
-    if len(chapters) != len(titles):
+def summary(src):
+    """(nesting level, title) of each chapter in SUMMARY.md.
+
+    That's the order print.html lays the chapters out in; draft chapters have no
+    link and are left out of both.
+    """
+    text = (src / "SUMMARY.md").read_text()
+    return [(len(indent) // 2 + 1, title) for indent, title in SUMMARY_ENTRY.findall(text)]
+
+
+def chapter_pages(html, src):
+    """Gives each chapter a running header and an English table of contents entry."""
+    chapters = HEADING.sub(r'<\1 role="none"', html).split(CHAPTER_BREAK)
+    titles, english = summary(src), summary(pathlib.Path("src"))
+    if not len(chapters) == len(titles) == len(english):
         sys.exit(f"print.html has {len(chapters)} chapters but SUMMARY.md lists {len(titles)}")
 
     rules = []
-    # The front page goes without a header.
-    for i, (chapter, title) in enumerate(zip(chapters, titles)):
+    for i, (chapter, (_, title), (level, toc_title)) in enumerate(zip(chapters, titles, english)):
+        # Chrome builds the PDF's outline from the headings it paints and doesn't
+        # take role="none" ones, so this invisible heading is the chapter's entry.
+        chapter = f'<h{level} class="toc-entry">{escape(toc_title)}</h{level}>{chapter}'
+        # The front page goes without a header.
         if not i:
+            chapters[i] = chapter
             continue
         title = title.replace("\\", "\\\\").replace('"', '\\"')
         rules.append(f'@page chapter-{i} {{ @top-center {{ content: "{title}"; }} }}')
@@ -148,7 +164,7 @@ def main():
 
     main_html = YOUTUBE.sub(r'<p><a href="https://youtu.be/\1">YouTube: youtu.be/\1</a></p>', main_html)
     main_html = tag_japanese(main_html, japanese_strings(pathlib.Path("src")))
-    main_html, page_rules = running_headers(main_html, src)
+    main_html, page_rules = chapter_pages(main_html, src)
     head = head.replace("</head>", f"<style>\n{page_rules}\n</style>\n</head>")
     path.write_text(f"{head}<main>{main_html}</main>{tail}")
 
