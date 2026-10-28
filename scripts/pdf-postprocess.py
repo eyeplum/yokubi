@@ -1,6 +1,6 @@
-"""Prepares an edition's print.html for printing to the reMarkable PDF.
+"""Prepares an edition's print.html for printing to PDF.
 
-Usage: remarkable-postprocess.py <print.html> <the edition's src dir>
+Usage: pdf-postprocess.py <print.html> <the edition's src dir> [--romaji-toc]
 
 The Japanese has to be tagged so it gets a Japanese font: in the Chinese edition
 (lang="zh-CN") it would otherwise be drawn with Chinese glyphs (see the 置 check
@@ -8,9 +8,9 @@ in Before-you-begin). The English edition carries the same Japanese verbatim, so
 every run of kana/kanji in the English source is a known Japanese string, and
 occurrences of those are wrapped in <span lang="ja">. YouTube embeds can't play
 on paper, so they become links. Each chapter gets its SUMMARY.md title (with the
-lesson number) as a running header, and its English SUMMARY.md title as its entry
-in the PDF's table of contents, with the Japanese in romaji, since the reMarkable
-draws CJK there as tofu.
+lesson number) as a running header and as its entry in the PDF's table of
+contents. With --romaji-toc the entry is the English SUMMARY.md title with the
+Japanese in romaji instead, since the reMarkable draws CJK there as tofu.
 """
 import pathlib
 import re
@@ -186,18 +186,20 @@ def summary(src):
     return [(len(indent) // 2 + 1, title) for indent, title in SUMMARY_ENTRY.findall(text)]
 
 
-def chapter_pages(html, src):
-    """Gives each chapter a running header and an English table of contents entry."""
+def chapter_pages(html, src, romaji_toc):
+    """Gives each chapter a running header and a table of contents entry."""
     chapters = HEADING.sub(r'<\1 role="none"', html).split(CHAPTER_BREAK)
-    titles, english = summary(src), summary(pathlib.Path("src"))
-    if not len(chapters) == len(titles) == len(english):
+    titles = toc = summary(src)
+    if romaji_toc:
+        toc = [(level, romaji(title)) for level, title in summary(pathlib.Path("src"))]
+    if not len(chapters) == len(titles) == len(toc):
         sys.exit(f"print.html has {len(chapters)} chapters but SUMMARY.md lists {len(titles)}")
 
     rules = []
-    for i, (chapter, (_, title), (level, toc_title)) in enumerate(zip(chapters, titles, english)):
+    for i, (chapter, (_, title), (level, toc_title)) in enumerate(zip(chapters, titles, toc)):
         # Chrome builds the PDF's outline from the headings it paints and doesn't
         # take role="none" ones, so this invisible heading is the chapter's entry.
-        chapter = f'<h{level} class="toc-entry">{escape(romaji(toc_title))}</h{level}>{chapter}'
+        chapter = f'<h{level} class="toc-entry">{escape(toc_title)}</h{level}>{chapter}'
         # The front page goes without a header.
         if not i:
             chapters[i] = chapter
@@ -211,13 +213,14 @@ def chapter_pages(html, src):
 
 def main():
     path, src = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+    romaji_toc = sys.argv[3:] == ["--romaji-toc"]
     html = path.read_text()
     head, rest = html.split("<main>", 1)
     main_html, tail = rest.split("</main>", 1)
 
     main_html = YOUTUBE.sub(r'<p><a href="https://youtu.be/\1">YouTube: youtu.be/\1</a></p>', main_html)
     main_html = tag_japanese(main_html, japanese_strings(pathlib.Path("src")))
-    main_html, page_rules = chapter_pages(main_html, src)
+    main_html, page_rules = chapter_pages(main_html, src, romaji_toc)
     head = head.replace("</head>", f"<style>\n{page_rules}\n</style>\n</head>")
     path.write_text(f"{head}<main>{main_html}</main>{tail}")
 

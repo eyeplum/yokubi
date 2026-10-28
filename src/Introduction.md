@@ -17,6 +17,7 @@ You are welcome to join our [discord community](https://discord.gg/KZj4dVFDzu) f
 If you want to contribute, you can view the project [on github](https://github.com/Morgawr/yokubi) and file issues and pull requests. 
 
 <p class="pdf-downloads">
+Want it on your phone? Download the guide as a PDF made for phones: <a href="yokubi-en-phone.pdf">English</a> · <a href="yokubi-zh-phone.pdf">中文</a><br>
 Reading on an e-reader? Download the guide as a PDF made for the reMarkable 2: <a href="yokubi-en.pdf">English</a> · <a href="yokubi-zh.pdf">中文</a>
 </p>
 

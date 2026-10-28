@@ -1,0 +1,22 @@
+/* Only loaded by scripts/export-pdf.sh, on top of pdf.css. */
+
+/* A phone's screen in CSS pixels (iPhone 12 to 16; Android phones are about as
+   wide), so with the site's 16px text a page reads like the site on a phone. */
+@page {
+  size: 390px 844px;
+  margin: 36px 16px 24px;
+
+  @top-center {
+    font-size: 9px;
+  }
+}
+
+/* The page margin replaces the site's 15px padding. */
+:root {
+  --page-padding: 0;
+}
+
+/* The widest table (in Lesson 33) only fits with less than the site's 20px. */
+table td, table thead th {
+  padding: 3px 4px;
+}

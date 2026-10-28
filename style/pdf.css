@@ -1,0 +1,46 @@
+/* Only loaded by scripts/export-pdf.sh, on top of custom.css and before the
+   device's page and text sizes (remarkable.css or phone.css). */
+
+@page {
+  /* The chapter title; each chapter's content is set by scripts/pdf-postprocess.py. */
+  @top-center {
+    font-family: "Open Sans", sans-serif;
+    color: #666;
+  }
+}
+
+body, pre {
+  font-family: "Open Sans", "PingFang SC", sans-serif;
+}
+
+/* Japanese spans are tagged by scripts/pdf-postprocess.py. */
+:lang(ja) {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+
+table, .warning, li {
+  break-inside: avoid;
+}
+
+/* Empty, but after the last chapter's named page it would start a blank one. */
+.nav-wrapper, .nav-wide-wrapper {
+  display: none;
+}
+
+/* Painted (so Chrome puts them in the PDF's table of contents) but invisible. */
+.toc-entry {
+  position: absolute;
+  margin: 0;
+  font-size: 1px;
+  color: transparent;
+}
+
+/* The front page's links to these PDFs. */
+.pdf-downloads {
+  display: none;
+}
+
+/* Most tables have a blank header row, which prints as a grey bar. */
+thead:not(:has(th:not(:empty))) {
+  display: none;
+}
