@@ -1,13 +1,18 @@
 /* Only loaded by scripts/export-pdf.sh, on top of pdf.css. */
 
-/* A phone's screen in CSS pixels (iPhone 12 to 16; Android phones are about as
-   wide), so with the site's 16px text a page reads like the site on a phone. */
+/* A phone's screen in CSS pixels (an iPhone 12 to 14; later iPhones and Android
+   phones are the same shape), so with the site's 16px text a page reads like the
+   site on a phone. Shown full screen, the top 62px are behind the Dynamic Island
+   and the bottom 34px behind the home indicator (the iPhone's safe area), so the
+   chapter header goes just below the former. */
 @page {
   size: 390px 844px;
-  margin: 36px 16px 24px;
+  margin: 84px 16px 34px;
 
   @top-center {
     font-size: 9px;
+    vertical-align: bottom;
+    padding-bottom: 10px;
   }
 }
 
